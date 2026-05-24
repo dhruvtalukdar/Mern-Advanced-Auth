@@ -1,79 +1,76 @@
-import { motion } from "framer-motion";
 import { useState } from "react";
-import { useAuthStore } from "../store/authStore";
-import Input from "../components/Input";
-import { ArrowLeft, Loader, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Mail, Loader, ArrowLeft, CheckCircle } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import AuthLayout from "../components/AuthLayout";
 
 const ForgotPasswordPage = () => {
 	const [email, setEmail] = useState("");
-	const [isSubmitted, setIsSubmitted] = useState(false);
+	const [submitted, setSubmitted] = useState(false);
 
-	const { isLoading, forgotPassword } = useAuthStore();
+	const { forgotPassword, isLoading } = useAuthStore();
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		await forgotPassword(email);
-		setIsSubmitted(true);
+		try {
+			await forgotPassword(email);
+			setSubmitted(true);
+		} catch (error) {
+			// handled by store
+		}
 	};
 
-	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5 }}
-			className='max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden'
-		>
-			<div className='p-8'>
-				<h2 className='text-3xl font-bold mb-6 text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text'>
-					Forgot Password
-				</h2>
-
-				{!isSubmitted ? (
-					<form onSubmit={handleSubmit}>
-						<p className='text-gray-300 mb-6 text-center'>
-							Enter your email address and we'll send you a link to reset your password.
-						</p>
-						<Input
-							icon={Mail}
-							type='email'
-							placeholder='Email Address'
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							required
-						/>
-						<motion.button
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-							className='w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200'
-							type='submit'
-						>
-							{isLoading ? <Loader className='size-6 animate-spin mx-auto' /> : "Send Reset Link"}
-						</motion.button>
-					</form>
-				) : (
-					<div className='text-center'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ type: "spring", stiffness: 500, damping: 30 }}
-							className='w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4'
-						>
-							<Mail className='h-8 w-8 text-white' />
-						</motion.div>
-						<p className='text-gray-300 mb-6'>
-							If an account exists for {email}, you will receive a password reset link shortly.
-						</p>
+	if (submitted) {
+		return (
+			<AuthLayout title="Check your email" subtitle={`We sent a reset link to ${email}`}>
+				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+					<div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+						<CheckCircle size={32} className="text-green-600 dark:text-green-400" />
 					</div>
-				)}
-			</div>
+					<p className="text-sm text-surface-600 dark:text-surface-400 mb-6">
+						If an account exists with this email, you'll receive a password reset link shortly.
+					</p>
+					<Link to="/login" className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium">
+						<ArrowLeft size={16} /> Back to login
+					</Link>
+				</motion.div>
+			</AuthLayout>
+		);
+	}
 
-			<div className='px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center'>
-				<Link to={"/login"} className='text-sm text-green-400 hover:underline flex items-center'>
-					<ArrowLeft className='h-4 w-4 mr-2' /> Back to Login
-				</Link>
-			</div>
-		</motion.div>
+	return (
+		<AuthLayout title="Forgot password?" subtitle="Enter your email and we'll send you a reset link">
+			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div>
+						<label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Email</label>
+						<div className="relative">
+							<Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+							<input
+								type="email"
+								placeholder="you@example.com"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								className="input-field pl-10"
+								required
+							/>
+						</div>
+					</div>
+
+					<button type="submit" disabled={isLoading} className="btn-primary w-full flex items-center justify-center gap-2">
+						{isLoading ? <Loader size={18} className="animate-spin" /> : "Send Reset Link"}
+					</button>
+				</form>
+
+				<p className="mt-6 text-center text-sm text-surface-500 dark:text-surface-400">
+					<Link to="/login" className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium">
+						<ArrowLeft size={14} /> Back to login
+					</Link>
+				</p>
+			</motion.div>
+		</AuthLayout>
 	);
 };
+
 export default ForgotPasswordPage;

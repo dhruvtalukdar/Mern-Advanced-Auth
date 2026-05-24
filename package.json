@@ -1,28 +1,30 @@
 {
-	"name": "auth-tutorial",
+	"name": "authkit-pro",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Production-ready MERN authentication boilerplate with Google OAuth, role-based access, and email verification",
 	"main": "backend/index.js",
 	"scripts": {
 		"dev": "cross-env NODE_ENV=development nodemon backend/index.js",
 		"start": "cross-env NODE_ENV=production node backend/index.js",
 		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": ["mern", "auth", "boilerplate", "oauth", "jwt"],
+	"author": "AuthKit Pro",
 	"type": "module",
-	"license": "ISC",
+	"license": "MIT",
 	"dependencies": {
 		"bcryptjs": "^2.4.3",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
-		"crypto": "^1.0.1",
 		"dotenv": "^16.4.5",
 		"express": "^4.19.2",
+		"express-rate-limit": "^7.4.0",
 		"jsonwebtoken": "^9.0.2",
 		"mailtrap": "^3.4.0",
-		"mongodb": "^7.2.0",
-		"mongoose": "^8.5.2"
+		"mongoose": "^8.5.2",
+		"passport": "^0.7.0",
+		"passport-google-oauth20": "^2.0.0",
+		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"cross-env": "^10.1.0",

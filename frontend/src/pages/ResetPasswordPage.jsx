@@ -1,84 +1,103 @@
 import { useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Lock, Loader, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
-import { useNavigate, useParams } from "react-router-dom";
-import Input from "../components/Input";
-import { Lock } from "lucide-react";
+import AuthLayout from "../components/AuthLayout";
 import toast from "react-hot-toast";
 
 const ResetPasswordPage = () => {
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-	const { resetPassword, error, isLoading, message } = useAuthStore();
+	const [showPassword, setShowPassword] = useState(false);
+	const [success, setSuccess] = useState(false);
 
 	const { token } = useParams();
 	const navigate = useNavigate();
+	const { resetPassword, isLoading, error } = useAuthStore();
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (password !== confirmPassword) {
-			alert("Passwords do not match");
+			toast.error("Passwords do not match");
 			return;
 		}
+
 		try {
 			await resetPassword(token, password);
-
-			toast.success("Password reset successfully, redirecting to login page...");
-			setTimeout(() => {
-				navigate("/login");
-			}, 2000);
+			setSuccess(true);
+			toast.success("Password reset successful!");
 		} catch (error) {
-			console.error(error);
-			toast.error(error.message || "Error resetting password");
+			// handled by store
 		}
 	};
 
+	if (success) {
+		return (
+			<AuthLayout title="Password reset!" subtitle="Your password has been changed successfully">
+				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+					<div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+						<CheckCircle size={32} className="text-green-600 dark:text-green-400" />
+					</div>
+					<Link to="/login" className="btn-primary inline-block">
+						Sign in with new password
+					</Link>
+				</motion.div>
+			</AuthLayout>
+		);
+	}
+
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5 }}
-			className='max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden'
-		>
-			<div className='p-8'>
-				<h2 className='text-3xl font-bold mb-6 text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text'>
-					Reset Password
-				</h2>
-				{error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
-				{message && <p className='text-green-500 text-sm mb-4'>{message}</p>}
+		<AuthLayout title="Reset password" subtitle="Enter your new password">
+			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div>
+						<label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">New Password</label>
+						<div className="relative">
+							<Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+							<input
+								type={showPassword ? "text" : "password"}
+								placeholder="••••••••"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								className="input-field pl-10 pr-10"
+								required
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
+							>
+								{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+							</button>
+						</div>
+					</div>
 
-				<form onSubmit={handleSubmit}>
-					<Input
-						icon={Lock}
-						type='password'
-						placeholder='New Password'
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						required
-					/>
+					<div>
+						<label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Confirm Password</label>
+						<div className="relative">
+							<Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+							<input
+								type={showPassword ? "text" : "password"}
+								placeholder="••••••••"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								className="input-field pl-10"
+								required
+							/>
+						</div>
+					</div>
 
-					<Input
-						icon={Lock}
-						type='password'
-						placeholder='Confirm New Password'
-						value={confirmPassword}
-						onChange={(e) => setConfirmPassword(e.target.value)}
-						required
-					/>
+					{error && <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/50 dark:text-red-400 p-3 rounded-lg">{error}</p>}
 
-					<motion.button
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
-						className='w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200'
-						type='submit'
-						disabled={isLoading}
-					>
-						{isLoading ? "Resetting..." : "Set New Password"}
-					</motion.button>
+					<button type="submit" disabled={isLoading} className="btn-primary w-full flex items-center justify-center gap-2">
+						{isLoading ? <Loader size={18} className="animate-spin" /> : "Reset Password"}
+					</button>
 				</form>
-			</div>
-		</motion.div>
+			</motion.div>
+		</AuthLayout>
 	);
 };
+
 export default ResetPasswordPage;

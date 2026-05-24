@@ -1,40 +1,54 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import FloatingShape from "./components/FloatingShape";
+import { Toaster } from "react-hot-toast";
+import { useAuthStore } from "./store/authStore";
+import { useEffect } from "react";
 
+import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import DashboardPage from "./pages/DashboardPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ProfilePage from "./pages/ProfilePage";
+import AdminPage from "./pages/AdminPage";
 
-import LoadingSpinner from "./components/LoadingSpinner";
-
-import { Toaster } from "react-hot-toast";
-import { useAuthStore } from "./store/authStore";
-import { useEffect } from "react";
-
-// protect routes that require authentication
+// Protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
 	if (!isAuthenticated) {
-		return <Navigate to='/login' replace />;
+		return <Navigate to="/login" replace />;
 	}
 
 	if (!user.isVerified) {
-		return <Navigate to='/verify-email' replace />;
+		return <Navigate to="/verify-email" replace />;
 	}
 
 	return children;
 };
 
-// redirect authenticated users to the home page
+// Admin-only route
+const AdminRoute = ({ children }) => {
+	const { isAuthenticated, user } = useAuthStore();
+
+	if (!isAuthenticated) {
+		return <Navigate to="/login" replace />;
+	}
+
+	if (user?.role !== "admin") {
+		return <Navigate to="/dashboard" replace />;
+	}
+
+	return children;
+};
+
+// Redirect authenticated users away from auth pages
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
-	if (isAuthenticated && user.isVerified) {
-		return <Navigate to='/' replace />;
+	if (isAuthenticated && user?.isVerified) {
+		return <Navigate to="/dashboard" replace />;
 	}
 
 	return children;
@@ -47,20 +61,20 @@ function App() {
 		checkAuth();
 	}, [checkAuth]);
 
-	if (isCheckingAuth) return <LoadingSpinner />;
+	if (isCheckingAuth) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
+				<div className="animate-spin w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full" />
+			</div>
+		);
+	}
 
 	return (
-		<div
-			className='min-h-screen bg-gradient-to-br
-    from-gray-900 via-green-900 to-emerald-900 flex items-center justify-center relative overflow-hidden'
-		>
-			<FloatingShape color='bg-green-500' size='w-64 h-64' top='-5%' left='10%' delay={0} />
-			<FloatingShape color='bg-emerald-500' size='w-48 h-48' top='70%' left='80%' delay={5} />
-			<FloatingShape color='bg-lime-500' size='w-32 h-32' top='40%' left='-10%' delay={2} />
-
+		<>
 			<Routes>
+				<Route path="/" element={<LandingPage />} />
 				<Route
-					path='/'
+					path="/dashboard"
 					element={
 						<ProtectedRoute>
 							<DashboardPage />
@@ -68,7 +82,23 @@ function App() {
 					}
 				/>
 				<Route
-					path='/signup'
+					path="/profile"
+					element={
+						<ProtectedRoute>
+							<ProfilePage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/admin"
+					element={
+						<AdminRoute>
+							<AdminPage />
+						</AdminRoute>
+					}
+				/>
+				<Route
+					path="/signup"
 					element={
 						<RedirectAuthenticatedUser>
 							<SignUpPage />
@@ -76,36 +106,39 @@ function App() {
 					}
 				/>
 				<Route
-					path='/login'
+					path="/login"
 					element={
 						<RedirectAuthenticatedUser>
 							<LoginPage />
 						</RedirectAuthenticatedUser>
 					}
 				/>
-				<Route path='/verify-email' element={<EmailVerificationPage />} />
+				<Route path="/verify-email" element={<EmailVerificationPage />} />
 				<Route
-					path='/forgot-password'
+					path="/forgot-password"
 					element={
 						<RedirectAuthenticatedUser>
 							<ForgotPasswordPage />
 						</RedirectAuthenticatedUser>
 					}
 				/>
-
 				<Route
-					path='/reset-password/:token'
+					path="/reset-password/:token"
 					element={
 						<RedirectAuthenticatedUser>
 							<ResetPasswordPage />
 						</RedirectAuthenticatedUser>
 					}
 				/>
-				{/* catch all routes */}
-				<Route path='*' element={<Navigate to='/' replace />} />
+				<Route path="*" element={<Navigate to="/" replace />} />
 			</Routes>
-			<Toaster />
-		</div>
+			<Toaster
+				position="top-center"
+				toastOptions={{
+					className: "!bg-white dark:!bg-surface-800 !text-surface-900 dark:!text-white !shadow-lg",
+				}}
+			/>
+		</>
 	);
 }
 

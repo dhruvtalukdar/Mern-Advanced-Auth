@@ -2,7 +2,7 @@ import { Check, X } from "lucide-react";
 
 const PasswordCriteria = ({ password }) => {
 	const criteria = [
-		{ label: "At least 6 characters", met: password.length >= 6 },
+		{ label: "At least 8 characters", met: password.length >= 8 },
 		{ label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
 		{ label: "Contains lowercase letter", met: /[a-z]/.test(password) },
 		{ label: "Contains a number", met: /\d/.test(password) },
@@ -10,15 +10,17 @@ const PasswordCriteria = ({ password }) => {
 	];
 
 	return (
-		<div className='mt-2 space-y-1'>
+		<div className="mt-2 space-y-1">
 			{criteria.map((item) => (
-				<div key={item.label} className='flex items-center text-xs'>
+				<div key={item.label} className="flex items-center text-xs">
 					{item.met ? (
-						<Check className='size-4 text-green-500 mr-2' />
+						<Check className="size-4 text-green-500 mr-2" />
 					) : (
-						<X className='size-4 text-gray-500 mr-2' />
+						<X className="size-4 text-surface-400 mr-2" />
 					)}
-					<span className={item.met ? "text-green-500" : "text-gray-400"}>{item.label}</span>
+					<span className={item.met ? "text-green-600 dark:text-green-400" : "text-surface-400 dark:text-surface-500"}>
+						{item.label}
+					</span>
 				</div>
 			))}
 		</div>
@@ -28,7 +30,7 @@ const PasswordCriteria = ({ password }) => {
 const PasswordStrengthMeter = ({ password }) => {
 	const getStrength = (pass) => {
 		let strength = 0;
-		if (pass.length >= 6) strength++;
+		if (pass.length >= 8) strength++;
 		if (pass.match(/[a-z]/) && pass.match(/[A-Z]/)) strength++;
 		if (pass.match(/\d/)) strength++;
 		if (pass.match(/[^a-zA-Z\d]/)) strength++;
@@ -52,20 +54,22 @@ const PasswordStrengthMeter = ({ password }) => {
 		return "Strong";
 	};
 
+	if (!password) return null;
+
 	return (
-		<div className='mt-2'>
-			<div className='flex justify-between items-center mb-1'>
-				<span className='text-xs text-gray-400'>Password strength</span>
-				<span className='text-xs text-gray-400'>{getStrengthText(strength)}</span>
+		<div className="mt-2">
+			<div className="flex justify-between items-center mb-1">
+				<span className="text-xs text-surface-500 dark:text-surface-400">Password strength</span>
+				<span className="text-xs text-surface-500 dark:text-surface-400">{getStrengthText(strength)}</span>
 			</div>
 
-			<div className='flex space-x-1'>
+			<div className="flex space-x-1">
 				{[...Array(4)].map((_, index) => (
 					<div
 						key={index}
-						className={`h-1 w-1/4 rounded-full transition-colors duration-300 
-                ${index < strength ? getColor(strength) : "bg-gray-600"}
-              `}
+						className={`h-1 w-1/4 rounded-full transition-colors duration-300 ${
+							index < strength ? getColor(strength) : "bg-surface-200 dark:bg-surface-700"
+						}`}
 					/>
 				))}
 			</div>
