@@ -9,7 +9,7 @@ export const sendVerificationEmail = async (email, verificationToken) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
+		const response = await mailtrapClient.testing.send({
 			from: sender,
 			to: recipient,
 			subject: "Verify your email",
@@ -29,14 +29,12 @@ export const sendWelcomeEmail = async (email, name) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
+		const response = await mailtrapClient.testing.send({
 			from: sender,
 			to: recipient,
-			template_uuid: "e65925d1-a9d1-4a40-ae7c-d92b37d593df",
-			template_variables: {
-				company_info_name: "Auth Company",
-				name: name,
-			},
+			subject: "Welcome to Auth App!",
+			html: `<h1>Welcome, ${name}!</h1><p>Your email has been verified successfully. Welcome to Auth App!</p>`,
+			category: "Welcome",
 		});
 
 		console.log("Welcome email sent successfully", response);
@@ -51,7 +49,7 @@ export const sendPasswordResetEmail = async (email, resetURL) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
+		const response = await mailtrapClient.testing.send({
 			from: sender,
 			to: recipient,
 			subject: "Reset your password",
@@ -69,7 +67,7 @@ export const sendResetSuccessEmail = async (email) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
+		const response = await mailtrapClient.testing.send({
 			from: sender,
 			to: recipient,
 			subject: "Password Reset Successful",
