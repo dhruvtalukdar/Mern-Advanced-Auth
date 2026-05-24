@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: authkit-pro
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_TYPE
+        value: mongodb
+      - key: PORT
+        value: 10000
+      # Set these manually in the Render dashboard:
+      # MONGO_URI
+      # JWT_SECRET
+      # MAILTRAP_TOKEN
+      # MAILTRAP_INBOX_ID
+      # MAILTRAP_ENDPOINT
+      # CLIENT_URL  (set to your Render service URL)
+      # GOOGLE_CLIENT_ID
+      # GOOGLE_CLIENT_SECRET
+      # GOOGLE_CALLBACK_URL
