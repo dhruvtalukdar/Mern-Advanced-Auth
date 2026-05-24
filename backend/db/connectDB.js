@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import { connectPostgres } from "./postgres.js";
 
 export const connectDB = async () => {
 	const dbType = process.env.DB_TYPE || "mongodb";
 
 	if (dbType === "postgres") {
+		const { connectPostgres } = await import("./postgres.js");
 		await connectPostgres();
 	} else {
 		try {

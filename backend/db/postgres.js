@@ -3,21 +3,33 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const sequelize = new Sequelize(process.env.POSTGRES_URI, {
-	dialect: "postgres",
-	logging: process.env.NODE_ENV === "development" ? console.log : false,
-	dialectOptions: {
-		ssl: process.env.POSTGRES_SSL === "true" ? { require: true, rejectUnauthorized: false } : false,
-	},
-});
+// Lazily created — only instantiated when connectPostgres() is called
+let sequelize = null;
+
+export const getSequelize = () => {
+	if (!sequelize) {
+		sequelize = new Sequelize(process.env.POSTGRES_URI, {
+			dialect: "postgres",
+			logging: process.env.NODE_ENV === "development" ? console.log : false,
+			dialectOptions: {
+				ssl: process.env.POSTGRES_SSL === "true" ? { require: true, rejectUnauthorized: false } : false,
+			},
+		});
+	}
+	return sequelize;
+};
 
 export const connectPostgres = async () => {
 	try {
-		await sequelize.authenticate();
-		console.log(`PostgreSQL Connected: ${sequelize.config.host || "localhost"}`);
+		const db = getSequelize();
+		await db.authenticate();
+		console.log(`PostgreSQL Connected: ${db.config.host || "localhost"}`);
+
+		// Import models here so they register themselves against the sequelize instance
+		await import("../models/user.postgres.js");
 
 		// Sync models (creates tables if they don't exist)
-		await sequelize.sync({ alter: process.env.NODE_ENV === "development" });
+		await db.sync({ alter: process.env.NODE_ENV === "development" });
 		console.log("PostgreSQL tables synced");
 	} catch (error) {
 		console.error("Error connecting to PostgreSQL:", error.message);
