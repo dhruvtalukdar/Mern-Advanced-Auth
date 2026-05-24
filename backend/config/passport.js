@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { User } from "../models/user.model.js";
+import UserRepository from "../repositories/user.repository.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -15,16 +15,16 @@ passport.use(
 		async (accessToken, refreshToken, profile, done) => {
 			try {
 				// Check if user already exists with this Google ID
-				let user = await User.findOne({ googleId: profile.id });
+				let user = await UserRepository.findOne({ googleId: profile.id });
 
 				if (user) {
 					user.lastLogin = new Date();
-					await user.save();
+					await UserRepository.save(user);
 					return done(null, user);
 				}
 
 				// Check if user exists with same email
-				user = await User.findOne({ email: profile.emails[0].value });
+				user = await UserRepository.findOne({ email: profile.emails[0].value });
 
 				if (user) {
 					// Link Google account to existing user
@@ -32,12 +32,12 @@ passport.use(
 					user.isVerified = true;
 					user.avatar = user.avatar || profile.photos[0]?.value || "";
 					user.lastLogin = new Date();
-					await user.save();
+					await UserRepository.save(user);
 					return done(null, user);
 				}
 
 				// Create new user
-				user = new User({
+				user = await UserRepository.create({
 					googleId: profile.id,
 					email: profile.emails[0].value,
 					name: profile.displayName,
@@ -45,7 +45,6 @@ passport.use(
 					isVerified: true,
 				});
 
-				await user.save();
 				return done(null, user);
 			} catch (error) {
 				return done(error, null);
@@ -55,12 +54,12 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-	done(null, user._id);
+	done(null, UserRepository.getId(user));
 });
 
 passport.deserializeUser(async (id, done) => {
 	try {
-		const user = await User.findById(id);
+		const user = await UserRepository.findById(id);
 		done(null, user);
 	} catch (error) {
 		done(error, null);

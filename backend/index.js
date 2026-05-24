@@ -15,7 +15,18 @@ import adminRoutes from "./routes/admin.route.js";
 dotenv.config();
 
 // Environment validation
-const requiredEnvVars = ["MONGO_URI", "JWT_SECRET"];
+const dbType = process.env.DB_TYPE || "mongodb";
+const requiredEnvVars = ["JWT_SECRET"];
+
+if (dbType === "mongodb") {
+	requiredEnvVars.push("MONGO_URI");
+} else if (dbType === "postgres") {
+	requiredEnvVars.push("POSTGRES_URI");
+} else {
+	console.error(`❌ Invalid DB_TYPE: "${dbType}". Must be "mongodb" or "postgres".`);
+	process.exit(1);
+}
+
 const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
 if (missingVars.length > 0) {
 	console.error(`❌ Missing required environment variables: ${missingVars.join(", ")}`);

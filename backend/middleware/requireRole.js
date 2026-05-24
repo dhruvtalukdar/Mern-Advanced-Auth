@@ -1,9 +1,9 @@
-import { User } from "../models/user.model.js";
+import UserRepository from "../repositories/user.repository.js";
 
 export const requireRole = (...roles) => {
 	return async (req, res, next) => {
 		try {
-			const user = await User.findById(req.userId);
+			const user = await UserRepository.findById(req.userId);
 			if (!user) {
 				return res.status(404).json({ success: false, message: "User not found" });
 			}

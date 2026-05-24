@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useTheme } from "../context/ThemeContext";
-import { LogOut, User, Shield, Sun, Moon, Monitor, Menu, X } from "lucide-react";
+import { LogOut, User, Shield, Sun, Moon, Monitor, Menu, X, BookOpen } from "lucide-react";
 import { useState } from "react";
 
 const Navbar = () => {
@@ -53,6 +53,13 @@ const Navbar = () => {
 								>
 									Dashboard
 								</Link>
+								<Link
+									to="/setup-guide"
+									className="text-surface-600 dark:text-surface-300 hover:text-surface-900 dark:hover:text-white transition-colors px-3 py-2 text-sm font-medium flex items-center gap-1"
+								>
+									<BookOpen size={16} />
+									Docs
+								</Link>
 								{user?.role === "admin" && (
 									<Link
 										to="/admin"
@@ -74,6 +81,13 @@ const Navbar = () => {
 							</>
 						) : (
 							<>
+								<Link
+									to="/setup-guide"
+									className="text-surface-600 dark:text-surface-300 hover:text-surface-900 dark:hover:text-white transition-colors px-3 py-2 text-sm font-medium flex items-center gap-1"
+								>
+									<BookOpen size={16} />
+									Docs
+								</Link>
 								<Link to="/login" className="btn-secondary text-sm py-2 px-4">
 									Log in
 								</Link>
@@ -104,6 +118,9 @@ const Navbar = () => {
 								<Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800">
 									Dashboard
 								</Link>
+								<Link to="/setup-guide" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800">
+									Setup Guide
+								</Link>
 								{user?.role === "admin" && (
 									<Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800">
 										Admin Panel
@@ -118,6 +135,9 @@ const Navbar = () => {
 							</div>
 						) : (
 							<div className="space-y-2">
+								<Link to="/setup-guide" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800">
+									Setup Guide
+								</Link>
 								<Link to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800">
 									Log in
 								</Link>

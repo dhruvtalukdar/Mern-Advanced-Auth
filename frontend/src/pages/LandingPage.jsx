@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Zap, Lock, Users, Globe, CheckCircle } from "lucide-react";
+import { Shield, Zap, Lock, Users, Globe, CheckCircle, Database, BookOpen } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -21,19 +21,19 @@ const features = [
 		description: "Built-in admin and user roles with protected routes and middleware.",
 	},
 	{
+		icon: Database,
+		title: "MongoDB + PostgreSQL",
+		description: "Switch databases with one env variable. Repository pattern keeps your code clean.",
+	},
+	{
 		icon: Zap,
 		title: "Email Verification",
 		description: "Complete email flow: verification, password reset, and welcome emails.",
 	},
 	{
 		icon: Shield,
-		title: "Input Validation",
-		description: "Zod schema validation on all endpoints with descriptive error messages.",
-	},
-	{
-		icon: CheckCircle,
 		title: "Production Ready",
-		description: "Rate limiting, CORS, environment validation, and deployment-ready setup.",
+		description: "Rate limiting, Zod validation, CORS, environment validation, and deployment-ready.",
 	},
 ];
 
@@ -63,15 +63,16 @@ const LandingPage = () => {
 						</h1>
 
 						<p className="mt-6 text-lg sm:text-xl text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
-							Complete authentication system with Google OAuth, role-based access, email verification, and a beautiful UI. Stop rebuilding auth - start building your product.
+							Complete authentication system with Google OAuth, role-based access, email verification, and dual database support. Stop rebuilding auth — start building your product.
 						</p>
 
 						<div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
 							<Link to="/signup" className="btn-primary text-base py-3 px-8 w-full sm:w-auto">
 								Get Started Free
 							</Link>
-							<Link to="/login" className="btn-secondary text-base py-3 px-8 w-full sm:w-auto">
-								Sign In
+							<Link to="/setup-guide" className="btn-secondary text-base py-3 px-8 w-full sm:w-auto flex items-center justify-center gap-2">
+								<BookOpen size={18} />
+								Setup Guide
 							</Link>
 						</div>
 					</motion.div>

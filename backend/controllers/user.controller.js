@@ -1,9 +1,15 @@
 import bcryptjs from "bcryptjs";
-import { User } from "../models/user.model.js";
+import UserRepository from "../repositories/user.repository.js";
 
 export const getProfile = async (req, res) => {
 	try {
-		const user = await User.findById(req.userId).select("-password -resetPasswordToken -resetPasswordExpiresAt -verificationToken -verificationTokenExpiresAt");
+		const user = await UserRepository.findById(req.userId, [
+			"password",
+			"resetPasswordToken",
+			"resetPasswordExpiresAt",
+			"verificationToken",
+			"verificationTokenExpiresAt",
+		]);
 		if (!user) {
 			return res.status(404).json({ success: false, message: "User not found" });
 		}
@@ -16,7 +22,7 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
 	try {
 		const { name, avatar, theme } = req.body;
-		const user = await User.findById(req.userId);
+		const user = await UserRepository.findById(req.userId);
 
 		if (!user) {
 			return res.status(404).json({ success: false, message: "User not found" });
@@ -26,15 +32,12 @@ export const updateProfile = async (req, res) => {
 		if (avatar) user.avatar = avatar;
 		if (theme) user.theme = theme;
 
-		await user.save();
+		await UserRepository.save(user);
 
 		res.status(200).json({
 			success: true,
 			message: "Profile updated successfully",
-			user: {
-				...user._doc,
-				password: undefined,
-			},
+			user: UserRepository.toSafeObject(user),
 		});
 	} catch (error) {
 		res.status(500).json({ success: false, message: "Server error" });
@@ -44,13 +47,12 @@ export const updateProfile = async (req, res) => {
 export const changePassword = async (req, res) => {
 	try {
 		const { currentPassword, newPassword } = req.body;
-		const user = await User.findById(req.userId);
+		const user = await UserRepository.findById(req.userId);
 
 		if (!user) {
 			return res.status(404).json({ success: false, message: "User not found" });
 		}
 
-		// Google-only users can't change password this way
 		if (!user.password) {
 			return res.status(400).json({ success: false, message: "Cannot change password for Google-linked account without existing password. Please use forgot password." });
 		}
@@ -61,7 +63,7 @@ export const changePassword = async (req, res) => {
 		}
 
 		user.password = await bcryptjs.hash(newPassword, 10);
-		await user.save();
+		await UserRepository.save(user);
 
 		res.status(200).json({ success: true, message: "Password changed successfully" });
 	} catch (error) {
@@ -71,7 +73,7 @@ export const changePassword = async (req, res) => {
 
 export const deleteAccount = async (req, res) => {
 	try {
-		await User.findByIdAndDelete(req.userId);
+		await UserRepository.findByIdAndDelete(req.userId);
 		res.clearCookie("token");
 		res.status(200).json({ success: true, message: "Account deleted successfully" });
 	} catch (error) {

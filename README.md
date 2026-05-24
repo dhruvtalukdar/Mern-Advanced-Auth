@@ -1,5 +1,5 @@
 <h1 align="center">AuthKit Pro</h1>
-<p align="center">Production-ready MERN authentication boilerplate with Google OAuth, role-based access control, and a modern UI.</p>
+<p align="center">Production-ready authentication boilerplate with Google OAuth, role-based access control, and a modern UI.<br/>Supports both <strong>MongoDB</strong> and <strong>PostgreSQL</strong> — switch with a single env variable.</p>
 
 ---
 
@@ -11,6 +11,7 @@
 - **Admin Panel** — user management, stats dashboard, role assignment
 - **Profile Management** — update name, change password, delete account
 - **Dark/Light Mode** — theme toggle with system preference detection
+- **Dual Database Support** — MongoDB or PostgreSQL, switchable via `DB_TYPE` env var
 - **Rate Limiting** — brute-force protection on auth endpoints
 - **Input Validation** — Zod schemas on all backend endpoints
 - **Responsive UI** — clean minimal SaaS design built with Tailwind CSS
@@ -20,8 +21,8 @@
 | Layer | Technologies |
 |-------|-------------|
 | Frontend | React, Tailwind CSS, Framer Motion, Zustand, React Router |
-| Backend | Node.js, Express, Mongoose, Passport.js |
-| Database | MongoDB (Atlas or local) |
+| Backend | Node.js, Express, Passport.js |
+| Database | MongoDB (Mongoose) **or** PostgreSQL (Sequelize) |
 | Email | Mailtrap |
 | Auth | JWT (HTTP-only cookies), Google OAuth 2.0, bcrypt |
 
@@ -38,25 +39,22 @@ npm install --prefix frontend
 
 ### 2. Environment Variables
 
-Create a `.env` file in the root:
+Copy `.env.example` to `.env` and fill in your values:
 
 ```bash
-MONGO_URI=your_mongodb_connection_string
-PORT=5000
-JWT_SECRET=your_random_secret_key
-NODE_ENV=development
-
-MAILTRAP_TOKEN=your_mailtrap_api_token
-MAILTRAP_INBOX_ID=your_mailtrap_inbox_id
-MAILTRAP_ENDPOINT=https://send.api.mailtrap.io/
-
-CLIENT_URL=http://localhost:5173
-
-# Google OAuth (optional)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+cp .env.example .env
 ```
+
+Key variables:
+
+| Variable | Description |
+|----------|-------------|
+| `DB_TYPE` | `mongodb` or `postgres` |
+| `MONGO_URI` | MongoDB connection string (if using MongoDB) |
+| `POSTGRES_URI` | PostgreSQL connection string (if using PostgreSQL) |
+| `JWT_SECRET` | Random secret for JWT signing |
+| `MAILTRAP_TOKEN` | Mailtrap API token |
+| `CLIENT_URL` | Frontend URL (default: `http://localhost:5173`) |
 
 ### 3. Run Development
 
@@ -75,6 +73,47 @@ npm run dev
 npm run build
 npm start
 ```
+
+---
+
+## Database Setup
+
+### Option A: MongoDB (default)
+
+Set `DB_TYPE=mongodb` in your `.env`:
+
+```bash
+DB_TYPE=mongodb
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/authkit_pro
+```
+
+Works with MongoDB Atlas (free tier) or a local MongoDB instance.
+
+### Option B: PostgreSQL
+
+Set `DB_TYPE=postgres` in your `.env`:
+
+```bash
+DB_TYPE=postgres
+POSTGRES_URI=postgresql://user:password@localhost:5432/authkit_pro
+POSTGRES_SSL=false
+```
+
+The schema is auto-created via Sequelize sync on first startup. For production, set `POSTGRES_SSL=true` if your host requires it (e.g., Supabase, Neon, Railway).
+
+**Local PostgreSQL quickstart:**
+
+```bash
+# Create the database
+createdb authkit_pro
+
+# Set your connection string
+POSTGRES_URI=postgresql://postgres:password@localhost:5432/authkit_pro
+```
+
+**Cloud PostgreSQL options:** Supabase, Neon, Railway, Render, or any PostgreSQL host.
+
+---
 
 ## Google OAuth Setup (Optional)
 
@@ -114,10 +153,11 @@ To send real emails:
 ├── backend/
 │   ├── config/          # Passport OAuth config
 │   ├── controllers/     # Auth, User, Admin controllers
-│   ├── db/              # MongoDB connection
+│   ├── db/              # MongoDB & PostgreSQL connectors
 │   ├── mailtrap/        # Email templates & sending
 │   ├── middleware/       # Auth, rate limiting, validation, roles
-│   ├── models/          # Mongoose schemas
+│   ├── models/          # Mongoose & Sequelize schemas
+│   ├── repositories/    # Database abstraction layer
 │   ├── routes/          # API routes
 │   ├── utils/           # JWT token generation
 │   └── validators/      # Zod validation schemas
@@ -127,7 +167,8 @@ To send real emails:
 │       ├── context/     # Theme context
 │       ├── pages/       # All app pages
 │       └── store/       # Zustand auth store
-└── .env
+├── .env.example         # Template for environment variables
+└── .env                 # Your local config (git-ignored)
 ```
 
 ## API Endpoints
@@ -150,6 +191,18 @@ To send real emails:
 | GET | `/api/admin/users` | List all users | Admin |
 | PUT | `/api/admin/users/:id/role` | Update user role | Admin |
 | DELETE | `/api/admin/users/:id` | Delete user | Admin |
+
+---
+
+## Switching Databases
+
+The app uses a **repository pattern** — all database operations go through `backend/repositories/user.repository.js`. This means:
+
+- You can switch between MongoDB and PostgreSQL by changing **one env variable** (`DB_TYPE`)
+- No controller or middleware code changes needed
+- Both databases use the same API and behavior
+
+To switch: stop the server, change `DB_TYPE` in `.env`, and restart.
 
 ---
 

@@ -12,6 +12,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPage from "./pages/AdminPage";
+import SetupGuidePage from "./pages/SetupGuidePage";
 
 // Protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
@@ -113,6 +114,7 @@ function App() {
 						</RedirectAuthenticatedUser>
 					}
 				/>
+				<Route path="/setup-guide" element={<SetupGuidePage />} />
 				<Route path="/verify-email" element={<EmailVerificationPage />} />
 				<Route
 					path="/forgot-password"
