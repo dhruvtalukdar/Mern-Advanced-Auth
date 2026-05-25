@@ -4,8 +4,9 @@ import { Users, UserCheck, ShieldCheck, TrendingUp, Activity, Trash2, ChevronDow
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import toast from "react-hot-toast";
+const API_PORT = import.meta.env.VITE_API_PORT || 5000;
 
-const API_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/api/admin" : "/api/admin";
+const API_URL = import.meta.env.MODE === "development" ? `http://localhost:${API_PORT}/api/admin` : "/api/admin";
 
 const AdminPage = () => {
 	const [stats, setStats] = useState(null);

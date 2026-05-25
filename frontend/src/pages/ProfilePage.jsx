@@ -7,8 +7,15 @@ import { useTheme } from "../context/ThemeContext";
 import Navbar from "../components/Navbar";
 import toast from "react-hot-toast";
 import axios from "axios";
+const API_PORT = import.meta.env.VITE_API_PORT || 5000;
 
-const API_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/api/user" : "/api/user";
+
+// const API_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/api/user" : "/api/user";
+
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? `http://localhost:${API_PORT}/api/user`
+    : `/api/user`;
 
 const ProfilePage = () => {
 	const { user, setUser } = useAuthStore();

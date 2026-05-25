@@ -6,6 +6,8 @@ import { useAuthStore } from "../store/authStore";
 import AuthLayout from "../components/AuthLayout";
 import toast from "react-hot-toast";
 
+const API_PORT = import.meta.env.VITE_API_PORT || 5000;
+
 const LoginPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ const LoginPage = () => {
 	};
 
 	const handleGoogleLogin = () => {
-		window.location.href = `${import.meta.env.MODE === "development" ? "http://localhost:5000" : ""}/api/auth/google`;
+		window.location.href = `${import.meta.env.MODE === "development" ? `http://localhost:${API_PORT}` : ""}/api/auth/google`;
 	};
 
 	return (
