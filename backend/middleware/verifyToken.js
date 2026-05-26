@@ -11,6 +11,12 @@ export const verifyToken = (req, res, next) => {
 		req.userId = decoded.userId;
 		next();
 	} catch (error) {
+		if (error.name === "TokenExpiredError") {
+			return res.status(401).json({ success: false, message: "Token expired — please log in again" });
+		}
+		if (error.name === "JsonWebTokenError") {
+			return res.status(401).json({ success: false, message: "Invalid token" });
+		}
 		console.log("Error in verifyToken ", error);
 		return res.status(500).json({ success: false, message: "Server error" });
 	}

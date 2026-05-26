@@ -7,7 +7,7 @@ import {
 	sendResetSuccessEmail,
 	sendVerificationEmail,
 	sendWelcomeEmail,
-} from "../mailtrap/emails.js";
+} from "../mailtrap/emailService.js";
 import UserRepository from "../repositories/user.repository.js";
 
 export const signup = async (req, res) => {
@@ -25,7 +25,7 @@ export const signup = async (req, res) => {
 		}
 
 		const hashedPassword = await bcryptjs.hash(password, 10);
-		const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+		const verificationToken = crypto.randomInt(100000, 999999).toString();
 
 		const user = await UserRepository.create({
 			email,
@@ -118,7 +118,8 @@ export const forgotPassword = async (req, res) => {
 		const user = await UserRepository.findOne({ email });
 
 		if (!user) {
-			return res.status(400).json({ success: false, message: "User not found" });
+			// Don't reveal whether a user exists — prevents email enumeration
+			return res.status(200).json({ success: true, message: "If an account with that email exists, a password reset link has been sent" });
 		}
 
 		const resetToken = crypto.randomBytes(20).toString("hex");
@@ -130,7 +131,7 @@ export const forgotPassword = async (req, res) => {
 
 		await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
 
-		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
+		res.status(200).json({ success: true, message: "If an account with that email exists, a password reset link has been sent" });
 	} catch (error) {
 		console.log("Error in forgotPassword ", error);
 		res.status(400).json({ success: false, message: error.message });
@@ -178,5 +179,33 @@ export const checkAuth = async (req, res) => {
 	} catch (error) {
 		console.log("Error in checkAuth ", error);
 		res.status(400).json({ success: false, message: error.message });
+	}
+};
+
+export const resendVerificationCode = async (req, res) => {
+	const { email } = req.body;
+	try {
+		const user = await UserRepository.findOne({ email });
+
+		if (!user) {
+			return res.status(400).json({ success: false, message: "User not found" });
+		}
+
+		if (user.isVerified) {
+			return res.status(400).json({ success: false, message: "Email is already verified" });
+		}
+
+		// Generate a new verification code
+		const verificationToken = crypto.randomInt(100000, 999999).toString();
+		user.verificationToken = verificationToken;
+		user.verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+		await UserRepository.save(user);
+
+		await sendVerificationEmail(user.email, verificationToken);
+
+		res.status(200).json({ success: true, message: "Verification code sent to your email" });
+	} catch (error) {
+		console.log("Error in resendVerificationCode ", error);
+		res.status(500).json({ success: false, message: "Server error" });
 	}
 };

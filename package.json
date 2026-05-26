@@ -8,7 +8,13 @@
 		"start": "cross-env NODE_ENV=production node backend/index.js",
 		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
 	},
-	"keywords": ["mern", "auth", "boilerplate", "oauth", "jwt"],
+	"keywords": [
+		"mern",
+		"auth",
+		"boilerplate",
+		"oauth",
+		"jwt"
+	],
 	"author": "AuthKit Pro",
 	"type": "module",
 	"license": "MIT",
@@ -19,6 +25,7 @@
 		"dotenv": "^16.4.5",
 		"express": "^4.19.2",
 		"express-rate-limit": "^7.4.0",
+		"helmet": "^8.2.0",
 		"jsonwebtoken": "^9.0.2",
 		"mailtrap": "^3.4.0",
 		"mongoose": "^8.5.2",
@@ -26,6 +33,7 @@
 		"passport-google-oauth20": "^2.0.0",
 		"pg": "^8.12.0",
 		"pg-hstore": "^2.3.4",
+		"resend": "^6.12.4",
 		"sequelize": "^6.37.0",
 		"zod": "^3.23.8"
 	},

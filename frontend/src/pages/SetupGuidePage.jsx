@@ -106,7 +106,7 @@ const SetupGuidePage = () => {
 							{[
 								{ label: "Database", value: "MongoDB or PostgreSQL", icon: Database },
 								{ label: "Auth", value: "JWT + Google OAuth", icon: Key },
-								{ label: "Email", value: "Mailtrap", icon: Mail },
+								{ label: "Email", value: "Mailtrap or Resend", icon: Mail },
 								{ label: "Frontend", value: "React + Tailwind", icon: Palette },
 								{ label: "Backend", value: "Express + Node.js", icon: Server },
 								{ label: "Roles", value: "Admin & User", icon: Users },
@@ -233,42 +233,74 @@ const SetupGuidePage = () => {
 						</Accordion>
 
 						{/* Step 3: Email Setup */}
-						<Accordion title="Step 3 — Email Configuration (Mailtrap)" icon={Mail}>
-							<div className="space-y-4 text-sm text-surface-700 dark:text-surface-300">
+						<Accordion title="Step 3 — Email Configuration" icon={Mail}>
+							<div className="space-y-5 text-sm text-surface-700 dark:text-surface-300">
+
+								{/* Important honest warning */}
+								<div className="p-4 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-900">
+									<p className="text-sm font-bold text-red-700 dark:text-red-400 mb-1">⚠️ Important — Read before configuring email</p>
+									<p className="text-xs text-red-600 dark:text-red-300">
+										<strong>Both providers (Mailtrap and Resend) require a verified custom domain to send emails to real users in production.</strong>{" "}
+										Without a domain, verification emails, password resets, and welcome emails will <em>not</em> reach your users.
+										During development this is fine - emails go to a test inbox and you can verify them manually.
+									</p>
+								</div>
+
 								<p>
-									Emails (verification codes, password resets, welcome emails) are sent via{" "}
-									<a href="https://mailtrap.io" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 underline">Mailtrap</a>.
+									Choose an email provider by setting{" "}
+									<code className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-800 rounded text-xs font-semibold">EMAIL_PROVIDER</code>{" "}
+									in your <code className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-800 rounded text-xs">.env</code>.
 								</p>
 
-								<div className="flex items-start gap-3">
-									<StepNumber number="1" />
-									<div className="flex-1">
-										<p className="font-medium text-surface-900 dark:text-white">Create a Mailtrap account</p>
-										<p className="text-surface-500 dark:text-surface-400">Sign up free at mailtrap.io</p>
-									</div>
+								{/* Mailtrap */}
+								<div className="border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+									<h4 className="font-bold text-surface-900 dark:text-white flex items-center gap-2 mb-1">
+										<div className="w-5 h-5 bg-amber-100 dark:bg-amber-900/30 rounded flex items-center justify-center">
+											<Mail size={12} className="text-amber-600 dark:text-amber-400" />
+										</div>
+										Option A: Mailtrap <span className="text-xs font-normal text-surface-500 dark:text-surface-400 ml-1">(default)</span>
+									</h4>
+									<p className="text-xs text-surface-500 dark:text-surface-400 mb-3">
+										Perfect for <strong className="text-surface-700 dark:text-surface-300">development & testing</strong>. Emails are caught in a sandbox inbox — they never reach real users, which is ideal while building.
+										To send to real users you must verify a domain inside Mailtrap's <em>Email Sending</em> section.
+									</p>
+									<CodeBlock code={`EMAIL_PROVIDER=mailtrap\nMAILTRAP_TOKEN=your_api_token\nMAILTRAP_INBOX_ID=your_inbox_id\nMAILTRAP_ENDPOINT=https://send.api.mailtrap.io/`} language="env" />
+									<p className="text-xs text-surface-500 dark:text-surface-400 mt-2">
+										Get your token & inbox ID at{" "}
+										<a href="https://mailtrap.io" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 underline">mailtrap.io</a>{" "}
+										→ Email Testing → Inboxes.
+									</p>
 								</div>
 
-								<div className="flex items-start gap-3">
-									<StepNumber number="2" />
-									<div className="flex-1">
-										<p className="font-medium text-surface-900 dark:text-white">Get your credentials</p>
-										<p className="text-surface-500 dark:text-surface-400">
-											Go to <strong>Email Testing → Inboxes</strong> and copy your API Token and Inbox ID.
-										</p>
-									</div>
+								{/* Resend */}
+								<div className="border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+									<h4 className="font-bold text-surface-900 dark:text-white flex items-center gap-2 mb-1">
+										<div className="w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded flex items-center justify-center">
+											<Mail size={12} className="text-green-600 dark:text-green-400" />
+										</div>
+										Option B: Resend <span className="text-xs font-normal text-surface-500 dark:text-surface-400 ml-1">(free — 3,000 emails/month)</span>
+									</h4>
+									<p className="text-xs text-surface-500 dark:text-surface-400 mb-3">
+										Great free tier for production. <strong className="text-surface-700 dark:text-surface-300">Without a verified domain</strong>, Resend restricts you to sending{" "}
+										<em>from</em> <code className="px-1 py-0.5 bg-surface-100 dark:bg-surface-800 rounded text-xs">onboarding@resend.dev</code> and{" "}
+										<em>only to your own verified email address</em> — not to any user who signs up.
+										To lift this restriction, verify a domain at{" "}
+										<a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 underline">resend.com</a>{" "}
+										and update <code className="px-1 py-0.5 bg-surface-100 dark:bg-surface-800 rounded text-xs">RESEND_FROM_EMAIL</code>.
+									</p>
+									<CodeBlock code={`EMAIL_PROVIDER=resend\nRESEND_API_KEY=re_your_api_key\n# Without a domain, keep this as-is (only delivers to your own verified email)\nRESEND_FROM_EMAIL=onboarding@resend.dev`} language="env" />
+									<p className="text-xs text-surface-500 dark:text-surface-400 mt-2">
+										Get a free API key at{" "}
+										<a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 underline">resend.com</a>.
+									</p>
 								</div>
 
-								<div className="flex items-start gap-3">
-									<StepNumber number="3" />
-									<div className="flex-1">
-										<p className="font-medium text-surface-900 dark:text-white">Add to .env</p>
-										<CodeBlock code={`MAILTRAP_TOKEN=your_api_token\nMAILTRAP_INBOX_ID=your_inbox_id\nMAILTRAP_ENDPOINT=https://send.api.mailtrap.io/`} language="env" />
-									</div>
-								</div>
-
-								<div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
-									<p className="text-xs text-amber-700 dark:text-amber-300">
-										<strong>Testing vs Production:</strong> By default, emails go to your Mailtrap inbox (sandbox). To send to real email addresses, verify a domain in Mailtrap's Email Sending section, then change <code>mailtrapClient.testing.send()</code> to <code>mailtrapClient.send()</code> in the emails file.
+								{/* Production note */}
+								<div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-900">
+									<p className="text-xs text-blue-700 dark:text-blue-300">
+										<strong>Going to production?</strong> You need a custom domain (e.g. bought on Namecheap, GoDaddy, Cloudflare — from ~$10/yr).
+										Verify it with either Mailtrap or Resend and update <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900 rounded">RESEND_FROM_EMAIL</code>{" "}
+										(or switch to <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900 rounded">mailtrapClient.send()</code> for Mailtrap) to unlock delivery to all users.
 									</p>
 								</div>
 							</div>
@@ -510,9 +542,12 @@ const SetupGuidePage = () => {
 												{ name: "PORT", required: "No", desc: "Server port (default: 5000)" },
 												{ name: "JWT_SECRET", required: "Yes", desc: "Secret key for JWT signing" },
 												{ name: "NODE_ENV", required: "No", desc: "development or production" },
-												{ name: "MAILTRAP_TOKEN", required: "Yes", desc: "Mailtrap API token" },
-												{ name: "MAILTRAP_INBOX_ID", required: "Yes", desc: "Mailtrap test inbox ID" },
-												{ name: "MAILTRAP_ENDPOINT", required: "Yes", desc: "Mailtrap API endpoint" },
+												{ name: "EMAIL_PROVIDER", required: "No", desc: '"mailtrap" (default) or "resend"' },
+												{ name: "MAILTRAP_TOKEN", required: "If Mailtrap", desc: "Mailtrap API token" },
+												{ name: "MAILTRAP_INBOX_ID", required: "If Mailtrap", desc: "Mailtrap test inbox ID" },
+												{ name: "MAILTRAP_ENDPOINT", required: "If Mailtrap", desc: "Mailtrap API endpoint" },
+												{ name: "RESEND_API_KEY", required: "If Resend", desc: "Resend API key (resend.com)" },
+												{ name: "RESEND_FROM_EMAIL", required: "If Resend", desc: "Sender address (needs verified domain for prod)" },
 												{ name: "CLIENT_URL", required: "No", desc: "Frontend URL (default: localhost:5173)" },
 												{ name: "GOOGLE_CLIENT_ID", required: "No", desc: "Google OAuth Client ID" },
 												{ name: "GOOGLE_CLIENT_SECRET", required: "No", desc: "Google OAuth Client Secret" },

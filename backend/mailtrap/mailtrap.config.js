@@ -9,6 +9,6 @@ export const mailtrapClient = new MailtrapClient({
 });
 
 export const sender = {
-	email: "mailtrap@demomailtrap.com",
-	name: "Burak",
+	email: process.env.MAILTRAP_SENDER_EMAIL || "mailtrap@demomailtrap.com",
+	name: process.env.APP_NAME || "AuthKit Pro",
 };

@@ -8,6 +8,7 @@ import {
 	forgotPassword,
 	resetPassword,
 	checkAuth,
+	resendVerificationCode,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { validate } from "../middleware/validate.js";
@@ -20,6 +21,7 @@ import {
 	verifyEmailSchema,
 } from "../validators/auth.validator.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import UserRepository from "../repositories/user.repository.js";
 
 const router = express.Router();
 
@@ -30,6 +32,7 @@ router.post("/login", authLimiter, validate(loginSchema), login);
 router.post("/logout", logout);
 
 router.post("/verify-email", validate(verifyEmailSchema), verifyEmail);
+router.post("/resend-verification", authLimiter, resendVerificationCode);
 router.post("/forgot-password", passwordResetLimiter, validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password/:token", passwordResetLimiter, validate(resetPasswordSchema), resetPassword);
 
@@ -41,7 +44,7 @@ router.get(
 	passport.authenticate("google", { session: false, failureRedirect: "/login" }),
 	(req, res) => {
 		// Generate JWT and set cookie
-		generateTokenAndSetCookie(res, req.user._id);
+		generateTokenAndSetCookie(res, UserRepository.getId(req.user));
 		// Redirect to frontend dashboard
 		res.redirect(process.env.CLIENT_URL || "http://localhost:5173");
 	}

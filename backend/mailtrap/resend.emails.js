@@ -3,86 +3,75 @@ import {
 	PASSWORD_RESET_SUCCESS_TEMPLATE,
 	VERIFICATION_EMAIL_TEMPLATE,
 } from "./emailTemplates.js";
-import { mailtrapClient, sender } from "./mailtrap.config.js";
+import { resendClient, resendSender } from "./resend.config.js";
 
 const APP_NAME = process.env.APP_NAME || "AuthKit Pro";
 
 const injectAppName = (html) => html.replaceAll("{appName}", APP_NAME);
 
 export const sendVerificationEmail = async (email, verificationToken) => {
-	const recipient = [{ email }];
-
 	try {
-		const response = await mailtrapClient.testing.send({
-			from: sender,
-			to: recipient,
+		const { data, error } = await resendClient.emails.send({
+			from: resendSender,
+			to: email,
 			subject: "Verify your email",
 			html: injectAppName(VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationToken)),
-			category: "Email Verification",
 		});
 
-		console.log("Email sent successfully", response);
+		if (error) throw new Error(error.message);
+		console.log("Verification email sent successfully", data);
 	} catch (error) {
-		console.error(`Error sending verification`, error);
-
+		console.error("Error sending verification email", error);
 		throw new Error(`Error sending verification email: ${error}`);
 	}
 };
 
 export const sendWelcomeEmail = async (email, name) => {
-	const recipient = [{ email }];
-
 	try {
-		const response = await mailtrapClient.testing.send({
-			from: sender,
-			to: recipient,
+		const { data, error } = await resendClient.emails.send({
+			from: resendSender,
+			to: email,
 			subject: `Welcome to ${APP_NAME}!`,
 			html: `<h1>Welcome, ${name}!</h1><p>Your email has been verified successfully. Welcome to ${APP_NAME}!</p>`,
-			category: "Welcome",
 		});
 
-		console.log("Welcome email sent successfully", response);
+		if (error) throw new Error(error.message);
+		console.log("Welcome email sent successfully", data);
 	} catch (error) {
-		console.error(`Error sending welcome email`, error);
-
+		console.error("Error sending welcome email", error);
 		throw new Error(`Error sending welcome email: ${error}`);
 	}
 };
 
 export const sendPasswordResetEmail = async (email, resetURL) => {
-	const recipient = [{ email }];
-
 	try {
-		const response = await mailtrapClient.testing.send({
-			from: sender,
-			to: recipient,
+		const { error } = await resendClient.emails.send({
+			from: resendSender,
+			to: email,
 			subject: "Reset your password",
 			html: injectAppName(PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL)),
-			category: "Password Reset",
 		});
-	} catch (error) {
-		console.error(`Error sending password reset email`, error);
 
+		if (error) throw new Error(error.message);
+	} catch (error) {
+		console.error("Error sending password reset email", error);
 		throw new Error(`Error sending password reset email: ${error}`);
 	}
 };
 
 export const sendResetSuccessEmail = async (email) => {
-	const recipient = [{ email }];
-
 	try {
-		const response = await mailtrapClient.testing.send({
-			from: sender,
-			to: recipient,
+		const { data, error } = await resendClient.emails.send({
+			from: resendSender,
+			to: email,
 			subject: "Password Reset Successful",
 			html: injectAppName(PASSWORD_RESET_SUCCESS_TEMPLATE),
-			category: "Password Reset",
 		});
 
-		console.log("Password reset email sent successfully", response);
+		if (error) throw new Error(error.message);
+		console.log("Password reset success email sent successfully", data);
 	} catch (error) {
-		console.error(`Error sending password reset success email`, error);
-
+		console.error("Error sending password reset success email", error);
 		throw new Error(`Error sending password reset success email: ${error}`);
 	}
 };
