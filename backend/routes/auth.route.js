@@ -9,6 +9,8 @@ import {
 	resetPassword,
 	checkAuth,
 	resendVerificationCode,
+	refreshToken,
+	logoutAll,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { validate } from "../middleware/validate.js";
@@ -20,7 +22,7 @@ import {
 	resetPasswordSchema,
 	verifyEmailSchema,
 } from "../validators/auth.validator.js";
-import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { generateTokenAndSetCookie, generateRefreshToken } from "../utils/generateTokenAndSetCookie.js";
 import UserRepository from "../repositories/user.repository.js";
 
 const router = express.Router();
@@ -30,6 +32,8 @@ router.get("/check-auth", verifyToken, checkAuth);
 router.post("/signup", authLimiter, validate(signupSchema), signup);
 router.post("/login", authLimiter, validate(loginSchema), login);
 router.post("/logout", logout);
+router.post("/logout-all", verifyToken, logoutAll);
+router.post("/refresh-token", refreshToken);
 
 router.post("/verify-email", validate(verifyEmailSchema), verifyEmail);
 router.post("/resend-verification", authLimiter, resendVerificationCode);
@@ -42,11 +46,22 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 router.get(
 	"/google/callback",
 	passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-	(req, res) => {
-		// Generate JWT and set cookie
-		generateTokenAndSetCookie(res, UserRepository.getId(req.user));
-		// Redirect to frontend dashboard
-		res.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+	async (req, res) => {
+		try {
+			// Generate refresh token and store in DB
+			const refreshTokenValue = generateRefreshToken();
+			req.user.refreshToken = refreshTokenValue;
+			req.user.refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+			await UserRepository.save(req.user);
+
+			// Generate JWT and set cookies
+			generateTokenAndSetCookie(res, UserRepository.getId(req.user), refreshTokenValue);
+			// Redirect to frontend dashboard
+			res.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+		} catch (error) {
+			console.log("Error in Google OAuth callback", error);
+			res.redirect("/login?error=oauth_failed");
+		}
 	}
 );
 

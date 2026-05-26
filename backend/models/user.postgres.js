@@ -69,6 +69,22 @@ const User = sequelize.define(
 			type: DataTypes.DATE,
 			allowNull: true,
 		},
+		refreshToken: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		refreshTokenExpiresAt: {
+			type: DataTypes.DATE,
+			allowNull: true,
+		},
+		twoFactorSecret: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		twoFactorEnabled: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false,
+		},
 	},
 	{
 		tableName: "users",

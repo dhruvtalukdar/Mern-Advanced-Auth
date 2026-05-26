@@ -96,7 +96,7 @@ if (dbType === "postgres") {
 			return user.id;
 		},
 
-		toSafeObject(user, excludeFields = ["password"]) {
+		toSafeObject(user, excludeFields = ["password", "twoFactorSecret", "refreshToken", "resetPasswordToken", "verificationToken"]) {
 			const obj = user.toJSON ? user.toJSON() : { ...user };
 			excludeFields.forEach((f) => delete obj[f]);
 			return obj;
@@ -152,7 +152,7 @@ if (dbType === "postgres") {
 			return user._id;
 		},
 
-		toSafeObject(user, excludeFields = ["password"]) {
+		toSafeObject(user, excludeFields = ["password", "twoFactorSecret", "refreshToken", "resetPasswordToken", "verificationToken"]) {
 			const obj = user._doc ? { ...user._doc } : user.toJSON ? user.toJSON() : { ...user };
 			excludeFields.forEach((f) => delete obj[f]);
 			return obj;
