@@ -105,11 +105,11 @@ const SetupGuidePage = () => {
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 							{[
 								{ label: "Database", value: "MongoDB or PostgreSQL", icon: Database },
-								{ label: "Auth", value: "JWT + Google OAuth", icon: Key },
+								{ label: "Auth", value: "JWT + Google OAuth + 2FA", icon: Key },
 								{ label: "Email", value: "Mailtrap or Resend", icon: Mail },
 								{ label: "Frontend", value: "React + Tailwind", icon: Palette },
 								{ label: "Backend", value: "Express + Node.js", icon: Server },
-								{ label: "Roles", value: "Admin & User", icon: Users },
+								{ label: "Security", value: "Refresh tokens + TOTP", icon: Shield },
 							].map((item) => (
 								<div key={item.label} className="flex items-center gap-3 p-3 rounded-lg bg-surface-50 dark:bg-surface-900">
 									<item.icon size={16} className="text-primary-600 dark:text-primary-400 flex-shrink-0" />
@@ -581,9 +581,12 @@ const SetupGuidePage = () => {
 									<div className="space-y-1.5">
 										{[
 											{ method: "POST", path: "/api/auth/signup", desc: "Register a new user" },
-											{ method: "POST", path: "/api/auth/login", desc: "Login with email & password" },
-											{ method: "POST", path: "/api/auth/logout", desc: "Clear auth cookie" },
+											{ method: "POST", path: "/api/auth/login", desc: "Login (supports 2FA)" },
+											{ method: "POST", path: "/api/auth/logout", desc: "Clear auth cookies" },
+											{ method: "POST", path: "/api/auth/logout-all", desc: "Logout from all devices" },
+											{ method: "POST", path: "/api/auth/refresh-token", desc: "Get new access token" },
 											{ method: "POST", path: "/api/auth/verify-email", desc: "Verify email with 6-digit code" },
+											{ method: "POST", path: "/api/auth/resend-verification", desc: "Resend verification code" },
 											{ method: "POST", path: "/api/auth/forgot-password", desc: "Send password reset email" },
 											{ method: "POST", path: "/api/auth/reset-password/:token", desc: "Reset password with token" },
 											{ method: "GET", path: "/api/auth/google", desc: "Redirect to Google OAuth" },
@@ -612,6 +615,9 @@ const SetupGuidePage = () => {
 											{ method: "PUT", path: "/api/user/profile", desc: "Update name" },
 											{ method: "PUT", path: "/api/user/change-password", desc: "Change password" },
 											{ method: "DELETE", path: "/api/user/delete-account", desc: "Delete account" },
+											{ method: "POST", path: "/api/user/2fa/setup", desc: "Get 2FA QR code" },
+											{ method: "POST", path: "/api/user/2fa/verify", desc: "Enable 2FA" },
+											{ method: "POST", path: "/api/user/2fa/disable", desc: "Disable 2FA" },
 										].map((ep) => (
 											<div key={ep.path + ep.method} className="flex items-center gap-3 py-1.5 px-3 rounded bg-surface-50 dark:bg-surface-900">
 												<span className={`text-xs font-bold w-12 ${ep.method === "GET" ? "text-green-600 dark:text-green-400" : ep.method === "DELETE" ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"}`}>

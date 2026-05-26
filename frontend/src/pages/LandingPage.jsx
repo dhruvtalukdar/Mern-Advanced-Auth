@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Zap, Lock, Users, Globe, CheckCircle, Database, BookOpen } from "lucide-react";
+import { Shield, Zap, Lock, Users, Globe, Database, BookOpen, RefreshCw, Smartphone, Container, Mail } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -8,7 +8,12 @@ const features = [
 	{
 		icon: Lock,
 		title: "Secure Authentication",
-		description: "JWT-based auth with HTTP-only cookies, bcrypt hashing, and rate limiting built-in.",
+		description: "JWT with refresh token rotation, HTTP-only cookies, bcrypt hashing, and rate limiting.",
+	},
+	{
+		icon: Smartphone,
+		title: "Two-Factor Auth (2FA)",
+		description: "TOTP-based 2FA with Google Authenticator / Authy support and QR code setup.",
 	},
 	{
 		icon: Globe,
@@ -16,9 +21,9 @@ const features = [
 		description: "One-click Google sign-in with automatic account linking for existing users.",
 	},
 	{
-		icon: Users,
-		title: "Role-Based Access",
-		description: "Built-in admin and user roles with protected routes and middleware.",
+		icon: RefreshCw,
+		title: "Refresh Token Rotation",
+		description: "Short-lived access tokens + long-lived refresh tokens. Logout from all devices instantly.",
 	},
 	{
 		icon: Database,
@@ -26,14 +31,24 @@ const features = [
 		description: "Switch databases with one env variable. Repository pattern keeps your code clean.",
 	},
 	{
-		icon: Zap,
+		icon: Users,
+		title: "Role-Based Access",
+		description: "Built-in admin and user roles with protected routes and middleware guards.",
+	},
+	{
+		icon: Mail,
 		title: "Email Verification",
-		description: "Complete email flow: verification, password reset, and welcome emails.",
+		description: "Mailtrap or Resend provider. Verification codes, password reset, and welcome emails.",
+	},
+	{
+		icon: Container,
+		title: "Docker Ready",
+		description: "One-command local dev with Docker Compose. Dockerfile for production deployment.",
 	},
 	{
 		icon: Shield,
 		title: "Production Ready",
-		description: "Rate limiting, Zod validation, CORS, environment validation, and deployment-ready.",
+		description: "Helmet security headers, Zod validation, CORS, and deployment-ready configuration.",
 	},
 ];
 
@@ -63,7 +78,7 @@ const LandingPage = () => {
 						</h1>
 
 						<p className="mt-6 text-lg sm:text-xl text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
-							Complete authentication system with Google OAuth, role-based access, email verification, and dual database support. Stop rebuilding auth — start building your product.
+							Complete authentication system with 2FA, refresh tokens, Google OAuth, role-based access, and dual database support. Stop rebuilding auth - start building your product.
 						</p>
 
 						<div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
