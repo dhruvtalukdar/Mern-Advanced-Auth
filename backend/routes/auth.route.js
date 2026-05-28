@@ -1,5 +1,6 @@
 import express from "express";
 import passport from "passport";
+import jwt from "jsonwebtoken";
 import {
 	login,
 	logout,
@@ -11,6 +12,7 @@ import {
 	resendVerificationCode,
 	refreshToken,
 	logoutAll,
+	verifyOAuth2FA,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { validate } from "../middleware/validate.js";
@@ -34,6 +36,7 @@ router.post("/login", authLimiter, validate(loginSchema), login);
 router.post("/logout", logout);
 router.post("/logout-all", verifyToken, logoutAll);
 router.post("/refresh-token", refreshToken);
+router.post("/verify-oauth-2fa", authLimiter, verifyOAuth2FA);
 
 router.post("/verify-email", validate(verifyEmailSchema), verifyEmail);
 router.post("/resend-verification", authLimiter, resendVerificationCode);
@@ -48,16 +51,26 @@ router.get(
 	passport.authenticate("google", { session: false, failureRedirect: "/login" }),
 	async (req, res) => {
 		try {
-			// Generate refresh token and store in DB
+			const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
+			// If user has 2FA enabled, issue a short-lived pending token and redirect to 2FA challenge
+			if (req.user.twoFactorEnabled) {
+				const pendingToken = jwt.sign(
+					{ userId: UserRepository.getId(req.user), purpose: "oauth-2fa" },
+					process.env.JWT_SECRET,
+					{ expiresIn: "5m" }
+				);
+				return res.redirect(`${clientUrl}/login?oauth2fa=${pendingToken}`);
+			}
+
+			// No 2FA — proceed normally
 			const refreshTokenValue = generateRefreshToken();
 			req.user.refreshToken = refreshTokenValue;
 			req.user.refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 			await UserRepository.save(req.user);
 
-			// Generate JWT and set cookies
 			generateTokenAndSetCookie(res, UserRepository.getId(req.user), refreshTokenValue);
-			// Redirect to frontend dashboard
-			res.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+			res.redirect(clientUrl);
 		} catch (error) {
 			console.log("Error in Google OAuth callback", error);
 			res.redirect("/login?error=oauth_failed");

@@ -1,25 +1,58 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Mail, Lock, Loader, Eye, EyeOff } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, Loader, Eye, EyeOff, ShieldCheck, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import AuthLayout from "../components/AuthLayout";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const API_PORT = import.meta.env.VITE_API_PORT || 5000;
+const API_URL = import.meta.env.MODE === "development" ? `http://localhost:${API_PORT}/api/auth` : "/api/auth";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
-	const navigate = useNavigate();
 
+	// 2FA step (email/password login)
+	const [requires2FA, setRequires2FA] = useState(false);
+	const [totpCode, setTotpCode] = useState("");
+	const totpInputRef = useRef(null);
+
+	// OAuth 2FA step (Google login with 2FA)
+	const [searchParams] = useSearchParams();
+	const [oauthPendingToken, setOauthPendingToken] = useState(() => searchParams.get("oauth2fa") || null);
+	const [oauthTotpCode, setOauthTotpCode] = useState("");
+	const [oauthError, setOauthError] = useState(null);
+	const [oauthLoading, setOauthLoading] = useState(false);
+	const oauthTotpRef = useRef(null);
+
+	const navigate = useNavigate();
 	const { login, isLoading, error } = useAuthStore();
+
+	// Auto-focus OTP input when 2FA screen shows
+	useEffect(() => {
+		if (requires2FA && totpInputRef.current) {
+			totpInputRef.current.focus();
+		}
+	}, [requires2FA]);
+
+	// Auto-focus OAuth TOTP input
+	useEffect(() => {
+		if (oauthPendingToken && oauthTotpRef.current) {
+			oauthTotpRef.current.focus();
+		}
+	}, [oauthPendingToken]);
 
 	const handleLogin = async (e) => {
 		e.preventDefault();
 		try {
-			await login(email, password);
+			const result = await login(email, password);
+			if (result?.requires2FA) {
+				setRequires2FA(true);
+				return; // Don't navigate — show 2FA step
+			}
 			navigate("/dashboard");
 			toast.success("Welcome back!");
 		} catch (error) {
@@ -27,10 +60,173 @@ const LoginPage = () => {
 		}
 	};
 
+	const handle2FASubmit = async (e) => {
+		e.preventDefault();
+		try {
+			const result = await login(email, password, totpCode);
+			if (result?.success) {
+				navigate("/dashboard");
+				toast.success("Welcome back!");
+			}
+		} catch (error) {
+			setTotpCode(""); // Clear code on failure so user can retry
+		}
+	};
+
 	const handleGoogleLogin = () => {
 		window.location.href = `${import.meta.env.MODE === "development" ? `http://localhost:${API_PORT}` : ""}/api/auth/google`;
 	};
 
+	const handleOAuth2FASubmit = async (e) => {
+		e.preventDefault();
+		setOauthError(null);
+		setOauthLoading(true);
+		try {
+			const response = await axios.post(`${API_URL}/verify-oauth-2fa`, {
+				pendingToken: oauthPendingToken,
+				totpCode: oauthTotpCode,
+			});
+			if (response.data.success) {
+				// Re-check auth to load user into store
+				await useAuthStore.getState().checkAuth();
+				navigate("/dashboard");
+				toast.success("Welcome back!");
+			}
+		} catch (err) {
+			setOauthError(err.response?.data?.message || "Verification failed");
+			setOauthTotpCode("");
+		} finally {
+			setOauthLoading(false);
+		}
+	};
+
+	// ── OAuth 2FA Verification Step ───────────────────────────────────────────
+	if (oauthPendingToken) {
+		return (
+			<AuthLayout title="Two-Factor Authentication" subtitle="Your Google account has 2FA enabled. Enter your code to continue.">
+				<motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
+					{/* Back button */}
+					<button
+						onClick={() => { setOauthPendingToken(null); setOauthTotpCode(""); setOauthError(null); navigate("/login", { replace: true }); }}
+						className="flex items-center gap-1.5 text-sm text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 mb-6 transition-colors"
+					>
+						<ArrowLeft size={16} />
+						Back to login
+					</button>
+
+					{/* Icon */}
+					<div className="flex justify-center mb-6">
+						<div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center">
+							<ShieldCheck size={32} className="text-primary-600 dark:text-primary-400" />
+						</div>
+					</div>
+
+					<form onSubmit={handleOAuth2FASubmit} className="space-y-5">
+						<div>
+							<label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">
+								Verification Code
+							</label>
+							<input
+								ref={oauthTotpRef}
+								type="text"
+								inputMode="numeric"
+								autoComplete="one-time-code"
+								value={oauthTotpCode}
+								onChange={(e) => setOauthTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+								placeholder="000000"
+								className="input-field text-center text-2xl tracking-[0.3em] font-mono"
+								maxLength={6}
+								required
+							/>
+							<p className="text-xs text-surface-400 dark:text-surface-500 mt-2 text-center">
+								Open your authenticator app (Google Authenticator, Authy, etc.)
+							</p>
+						</div>
+
+						{oauthError && (
+							<p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/50 dark:text-red-400 p-3 rounded-lg">
+								{oauthError}
+							</p>
+						)}
+
+						<button
+							type="submit"
+							disabled={oauthLoading || oauthTotpCode.length !== 6}
+							className="btn-primary w-full flex items-center justify-center gap-2"
+						>
+							{oauthLoading ? <Loader size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+							Verify & Sign In
+						</button>
+					</form>
+				</motion.div>
+			</AuthLayout>
+		);
+	}
+
+	// ── 2FA Verification Step (email/password login) ──────────────────────────
+	if (requires2FA) {
+		return (
+			<AuthLayout title="Two-Factor Authentication" subtitle="Enter the 6-digit code from your authenticator app">
+				<motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
+					{/* Back button */}
+					<button
+						onClick={() => { setRequires2FA(false); setTotpCode(""); }}
+						className="flex items-center gap-1.5 text-sm text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 mb-6 transition-colors"
+					>
+						<ArrowLeft size={16} />
+						Back to login
+					</button>
+
+					{/* Icon */}
+					<div className="flex justify-center mb-6">
+						<div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center">
+							<ShieldCheck size={32} className="text-primary-600 dark:text-primary-400" />
+						</div>
+					</div>
+
+					<form onSubmit={handle2FASubmit} className="space-y-5">
+						<div>
+							<label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">
+								Verification Code
+							</label>
+							<input
+								ref={totpInputRef}
+								type="text"
+								inputMode="numeric"
+								autoComplete="one-time-code"
+								value={totpCode}
+								onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+								placeholder="000000"
+								className="input-field text-center text-2xl tracking-[0.3em] font-mono"
+								maxLength={6}
+								required
+							/>
+							<p className="text-xs text-surface-400 dark:text-surface-500 mt-2 text-center">
+								Open your authenticator app (Google Authenticator, Authy, etc.)
+							</p>
+						</div>
+
+						{error && (
+							<p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/50 dark:text-red-400 p-3 rounded-lg">
+								{error}
+							</p>
+						)}
+
+						<button
+							type="submit"
+							disabled={isLoading || totpCode.length !== 6}
+							className="btn-primary w-full flex items-center justify-center gap-2"
+						>
+							{isLoading ? <Loader size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+							Verify & Sign In
+						</button>
+					</form>
+				</motion.div>
+			</AuthLayout>
+		);
+	}
+
+	// ── Normal Login Step ─────────────────────────────────────────────────────
 	return (
 		<AuthLayout title="Welcome back" subtitle="Sign in to your account">
 			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>

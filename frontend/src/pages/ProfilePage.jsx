@@ -305,6 +305,34 @@ const ProfilePage = () => {
 						)}
 					</div>
 
+					{/* ── Sessions ── */}
+					<div className="card p-6 mb-6">
+						<div className="flex items-center gap-3 mb-4">
+							<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+								<LogOut size={20} className="text-blue-600 dark:text-blue-400" />
+							</div>
+							<div>
+								<h2 className="text-lg font-semibold text-surface-900 dark:text-white">Active Sessions</h2>
+								<p className="text-sm text-surface-500 dark:text-surface-400">Sign out from all other devices</p>
+							</div>
+						</div>
+						<button
+							onClick={async () => {
+								try {
+									await logoutAll();
+									toast.success("Logged out from all devices");
+									navigate("/login");
+								} catch (error) {
+									toast.error("Failed to log out from all devices");
+								}
+							}}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+						>
+							<LogOut size={15} />
+							Logout from All Devices
+						</button>
+					</div>
+
 					{/* ── Danger Zone ── */}
 					<div className="card p-6 border border-red-200 dark:border-red-900">
 						<div className="flex items-center gap-3 mb-4">

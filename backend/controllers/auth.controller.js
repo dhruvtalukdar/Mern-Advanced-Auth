@@ -229,12 +229,12 @@ export const resetPassword = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
 	try {
-		const user = await UserRepository.findById(req.userId, ["password"]);
+		const user = await UserRepository.findById(req.userId);
 		if (!user) {
 			return res.status(400).json({ success: false, message: "User not found" });
 		}
 
-		res.status(200).json({ success: true, user });
+		res.status(200).json({ success: true, user: UserRepository.toSafeObject(user) });
 	} catch (error) {
 		console.log("Error in checkAuth ", error);
 		res.status(400).json({ success: false, message: error.message });
@@ -318,6 +318,68 @@ export const logoutAll = async (req, res) => {
 		res.status(200).json({ success: true, message: "Logged out from all devices" });
 	} catch (error) {
 		console.log("Error in logoutAll ", error);
+		res.status(500).json({ success: false, message: "Server error" });
+	}
+};
+
+// Verify 2FA after Google OAuth redirect
+export const verifyOAuth2FA = async (req, res) => {
+	const { pendingToken, totpCode } = req.body;
+	try {
+		if (!pendingToken || !totpCode) {
+			return res.status(400).json({ success: false, message: "Token and 2FA code are required" });
+		}
+
+		// Verify the pending token
+		let decoded;
+		try {
+			decoded = jwt.verify(pendingToken, process.env.JWT_SECRET);
+		} catch (err) {
+			return res.status(401).json({ success: false, message: "Invalid or expired token. Please login again." });
+		}
+
+		// Ensure this token was issued for OAuth 2FA purpose
+		if (decoded.purpose !== "oauth-2fa") {
+			return res.status(401).json({ success: false, message: "Invalid token purpose" });
+		}
+
+		const user = await UserRepository.findById(decoded.userId);
+		if (!user) {
+			return res.status(400).json({ success: false, message: "User not found" });
+		}
+
+		if (!user.twoFactorEnabled) {
+			return res.status(400).json({ success: false, message: "2FA is not enabled on this account" });
+		}
+
+		// Verify TOTP code
+		const verified = speakeasy.totp.verify({
+			secret: user.twoFactorSecret,
+			encoding: "base32",
+			token: totpCode,
+			window: 1,
+		});
+
+		if (!verified) {
+			return res.status(400).json({ success: false, message: "Invalid 2FA code" });
+		}
+
+		// 2FA passed — issue real auth tokens
+		const refreshTokenValue = generateRefreshToken();
+		user.refreshToken = refreshTokenValue;
+		user.refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS);
+		user.lastLogin = new Date();
+		await UserRepository.save(user);
+
+		generateTokenAndSetCookie(res, UserRepository.getId(user), refreshTokenValue);
+
+		res.status(200).json({
+			success: true,
+			message: "Logged in successfully",
+			user: UserRepository.toSafeObject(user),
+		});
+	} catch (error) {
+		console.log("Error in verifyOAuth2FA ", error);
 		res.status(500).json({ success: false, message: "Server error" });
 	}
 };
