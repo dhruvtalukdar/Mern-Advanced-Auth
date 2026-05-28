@@ -99,11 +99,11 @@ export const login = async (req, res) => {
 	try {
 		const user = await UserRepository.findOne({ email });
 		if (!user) {
-			return res.status(400).json({ success: false, message: "Invalid credentials" });
+			return res.status(401).json({ success: false, message: "Invalid credentials" });
 		}
 		const isPasswordValid = await bcryptjs.compare(password, user.password);
 		if (!isPasswordValid) {
-			return res.status(400).json({ success: false, message: "Invalid credentials" });
+			return res.status(401).json({ success: false, message: "Invalid credentials" });
 		}
 
 		// Check if 2FA is enabled
@@ -231,7 +231,7 @@ export const checkAuth = async (req, res) => {
 	try {
 		const user = await UserRepository.findById(req.userId);
 		if (!user) {
-			return res.status(400).json({ success: false, message: "User not found" });
+			return res.status(404).json({ success: false, message: "User not found" });
 		}
 
 		res.status(200).json({ success: true, user: UserRepository.toSafeObject(user) });
@@ -246,12 +246,9 @@ export const resendVerificationCode = async (req, res) => {
 	try {
 		const user = await UserRepository.findOne({ email });
 
-		if (!user) {
-			return res.status(400).json({ success: false, message: "User not found" });
-		}
-
-		if (user.isVerified) {
-			return res.status(400).json({ success: false, message: "Email is already verified" });
+		// Always return success to prevent email enumeration
+		if (!user || user.isVerified) {
+			return res.status(200).json({ success: true, message: "If that email is registered and unverified, a new code has been sent" });
 		}
 
 		// Generate a new verification code
@@ -262,7 +259,7 @@ export const resendVerificationCode = async (req, res) => {
 
 		await sendVerificationEmail(user.email, verificationToken);
 
-		res.status(200).json({ success: true, message: "Verification code sent to your email" });
+		res.status(200).json({ success: true, message: "If that email is registered and unverified, a new code has been sent" });
 	} catch (error) {
 		console.log("Error in resendVerificationCode ", error);
 		res.status(500).json({ success: false, message: "Server error" });

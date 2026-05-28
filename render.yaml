@@ -14,6 +14,8 @@ services:
         value: mongodb
       - key: PORT
         value: 10000
+      - key: EMAIL_PROVIDER
+        value: mailtrap
       # Set these manually in the Render dashboard:
       # MONGO_URI
       # JWT_SECRET

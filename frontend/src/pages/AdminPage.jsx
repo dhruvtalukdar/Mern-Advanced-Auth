@@ -8,6 +8,9 @@ const API_PORT = import.meta.env.VITE_API_PORT || 5000;
 
 const API_URL = import.meta.env.MODE === "development" ? `http://localhost:${API_PORT}/api/admin` : "/api/admin";
 
+// Support both MongoDB (_id) and PostgreSQL (id)
+const getUserId = (u) => u._id || u.id;
+
 const AdminPage = () => {
 	const [stats, setStats] = useState(null);
 	const [users, setUsers] = useState([]);
@@ -37,7 +40,7 @@ const AdminPage = () => {
 	const handleRoleChange = async (userId, newRole) => {
 		try {
 			await axios.put(`${API_URL}/users/${userId}/role`, { role: newRole });
-			setUsers(users.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
+			setUsers(users.map((u) => (getUserId(u) === userId ? { ...u, role: newRole } : u)));
 			toast.success("Role updated");
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Failed to update role");
@@ -48,7 +51,7 @@ const AdminPage = () => {
 		if (!window.confirm(`Delete user "${userName}"? This cannot be undone.`)) return;
 		try {
 			await axios.delete(`${API_URL}/users/${userId}`);
-			setUsers(users.filter((u) => u._id !== userId));
+			setUsers(users.filter((u) => getUserId(u) !== userId));
 			toast.success("User deleted");
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Failed to delete user");

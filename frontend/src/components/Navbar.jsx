@@ -4,6 +4,8 @@ import { useTheme } from "../context/ThemeContext";
 import { LogOut, User, Shield, Sun, Moon, Monitor, Menu, X, BookOpen } from "lucide-react";
 import { useState } from "react";
 
+const APP_NAME = import.meta.env.VITE_APP_NAME || "AuthKit Pro";
+
 const Navbar = () => {
 	const { user, isAuthenticated, logout } = useAuthStore();
 	const { theme, setTheme } = useTheme();
@@ -38,7 +40,7 @@ const Navbar = () => {
 						<div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
 							<Shield size={18} className="text-white" />
 						</div>
-						<span className="text-lg font-bold text-surface-900 dark:text-white">AuthKit Pro</span>
+						<span className="text-lg font-bold text-surface-900 dark:text-white">{APP_NAME}</span>
 					</Link>
 
 					{/* Desktop Navigation */}

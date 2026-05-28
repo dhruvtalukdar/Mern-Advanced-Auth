@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
+import { useTheme } from "./context/ThemeContext";
 
 import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -22,7 +23,7 @@ const ProtectedRoute = ({ children }) => {
 		return <Navigate to="/login" replace />;
 	}
 
-	if (!user.isVerified) {
+	if (!user?.isVerified) {
 		return <Navigate to="/verify-email" replace />;
 	}
 
@@ -56,11 +57,19 @@ const RedirectAuthenticatedUser = ({ children }) => {
 };
 
 function App() {
-	const { isCheckingAuth, checkAuth } = useAuthStore();
+	const { isCheckingAuth, checkAuth, user } = useAuthStore();
+	const { setTheme } = useTheme();
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
+
+	// Sync theme from server-stored preference when user loads
+	useEffect(() => {
+		if (user?.theme && ["light", "dark", "system"].includes(user.theme)) {
+			setTheme(user.theme);
+		}
+	}, [user?.theme]);
 
 	if (isCheckingAuth) {
 		return (

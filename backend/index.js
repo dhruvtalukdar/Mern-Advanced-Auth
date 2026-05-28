@@ -34,8 +34,19 @@ if (missingVars.length > 0) {
 	process.exit(1);
 }
 
-if (process.env.JWT_SECRET === "your_secret_key") {
-	console.warn("⚠️  WARNING: You are using the default JWT_SECRET. Please change it for security.");
+const KNOWN_WEAK_SECRETS = ["your_secret_key", "change_this_secret_in_production", "secret", "jwt_secret"];
+if (KNOWN_WEAK_SECRETS.includes(process.env.JWT_SECRET)) {
+	if (process.env.NODE_ENV === "production") {
+		console.error("❌ FATAL: JWT_SECRET is set to a known weak default. Set a strong random secret before deploying.");
+		process.exit(1);
+	} else {
+		console.warn("⚠️  WARNING: You are using a weak default JWT_SECRET. Change it before going to production.");
+	}
+}
+
+// Warn if Google OAuth credentials are missing
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+	console.warn("⚠️  WARNING: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set. Google OAuth will not work.");
 }
 
 const app = express();
@@ -44,7 +55,7 @@ const __dirname = path.resolve();
 
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "100kb" }));
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use(apiLimiter);
@@ -57,6 +68,11 @@ app.use("/api/admin", adminRoutes);
 // Health check
 app.get("/api/health", (req, res) => {
 	res.status(200).json({ success: true, message: "AuthKit Pro API is running" });
+});
+
+// 404 handler for unknown API routes (must be before the SPA wildcard)
+app.use("/api/*", (req, res) => {
+	res.status(404).json({ success: false, message: "API endpoint not found" });
 });
 
 if (process.env.NODE_ENV === "production") {

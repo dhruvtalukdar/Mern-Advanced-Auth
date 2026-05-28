@@ -73,7 +73,7 @@ router.get(
 			res.redirect(clientUrl);
 		} catch (error) {
 			console.log("Error in Google OAuth callback", error);
-			res.redirect("/login?error=oauth_failed");
+			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=oauth_failed`);
 		}
 	}
 );

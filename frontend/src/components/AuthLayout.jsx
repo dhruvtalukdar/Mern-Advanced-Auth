@@ -1,6 +1,8 @@
 import { Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
+const APP_NAME = import.meta.env.VITE_APP_NAME || "AuthKit Pro";
+
 const AuthLayout = ({ children, title, subtitle }) => {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-surface-50 dark:bg-surface-950">
@@ -9,7 +11,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
 				<div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
 					<Shield size={22} className="text-white" />
 				</div>
-				<span className="text-xl font-bold text-surface-900 dark:text-white">AuthKit Pro</span>
+				<span className="text-xl font-bold text-surface-900 dark:text-white">{APP_NAME}</span>
 			</Link>
 
 			{/* Card */}

@@ -9,11 +9,17 @@ const APP_NAME = process.env.APP_NAME || "AuthKit Pro";
 
 const injectAppName = (html) => html.replaceAll("{appName}", APP_NAME);
 
+// Use real send() in production, sandbox testing.send() in development
+const mailtrapSend = (payload) =>
+	process.env.NODE_ENV === "production"
+		? mailtrapClient.send(payload)
+		: mailtrapClient.testing.send(payload);
+
 export const sendVerificationEmail = async (email, verificationToken) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.testing.send({
+		const response = await mailtrapSend({
 			from: sender,
 			to: recipient,
 			subject: "Verify your email",
@@ -33,7 +39,7 @@ export const sendWelcomeEmail = async (email, name) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.testing.send({
+		const response = await mailtrapSend({
 			from: sender,
 			to: recipient,
 			subject: `Welcome to ${APP_NAME}!`,
@@ -53,7 +59,7 @@ export const sendPasswordResetEmail = async (email, resetURL) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.testing.send({
+		await mailtrapSend({
 			from: sender,
 			to: recipient,
 			subject: "Reset your password",
@@ -71,7 +77,7 @@ export const sendResetSuccessEmail = async (email) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.testing.send({
+		const response = await mailtrapSend({
 			from: sender,
 			to: recipient,
 			subject: "Password Reset Successful",

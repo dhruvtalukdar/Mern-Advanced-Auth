@@ -122,8 +122,8 @@ const ProfilePage = () => {
 		try {
 			await axios.delete(`${API_URL}/delete-account`, { data: { password: deletePassword } });
 			toast.success("Account deleted");
+			useAuthStore.getState().clearAuth();
 			navigate("/");
-			window.location.reload();
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Failed to delete account");
 		} finally {
@@ -373,7 +373,7 @@ const ProfilePage = () => {
 						<button type="button" onClick={() => { setShowDeleteModal(false); setDeletePassword(""); }} className="btn-secondary flex-1">
 							Cancel
 						</button>
-						<button type="submit" disabled={isDeletingAccount || !deletePassword} className="btn-danger flex-1 flex items-center justify-center gap-2">
+						<button type="submit" disabled={isDeletingAccount || (!user?.googleId && !deletePassword)} className="btn-danger flex-1 flex items-center justify-center gap-2">
 							{isDeletingAccount ? <Loader size={15} className="animate-spin" /> : <Trash2 size={15} />}
 							Delete
 						</button>
