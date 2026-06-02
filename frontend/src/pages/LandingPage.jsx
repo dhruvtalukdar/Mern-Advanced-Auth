@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Zap, Lock, Users, Globe, Database, BookOpen, RefreshCw, Smartphone, Container, Mail } from "lucide-react";
+import { Shield, Zap, Lock, Users, Globe, Database, BookOpen, RefreshCw, Smartphone, Container, Mail, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -51,6 +52,105 @@ const features = [
 		description: "Helmet security headers, Zod validation, CORS, and deployment-ready configuration.",
 	},
 ];
+
+const screenshotFlows = [
+	{
+		label: "Email Verification Flow",
+		folder: "email-verification-flow",
+		count: 7,
+	},
+	{
+		label: "Google Auth Flow",
+		folder: "google-auth-flow",
+		count: 9,
+	},
+];
+
+const ScreenshotGallery = () => {
+	const [activeFlow, setActiveFlow] = useState(0);
+	const [activeIndex, setActiveIndex] = useState(0);
+
+	const flow = screenshotFlows[activeFlow];
+	const total = flow.count;
+
+	const handleFlowChange = (i) => {
+		setActiveFlow(i);
+		setActiveIndex(0);
+	};
+
+	const prev = () => setActiveIndex((p) => (p - 1 + total) % total);
+	const next = () => setActiveIndex((p) => (p + 1) % total);
+
+	return (
+		<div className="flex flex-col items-center gap-6">
+			{/* Flow tabs */}
+			<div className="flex gap-2 p-1 bg-surface-100 dark:bg-surface-800 rounded-full">
+				{screenshotFlows.map((f, i) => (
+					<button
+						key={f.label}
+						onClick={() => handleFlowChange(i)}
+						className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+							activeFlow === i
+								? "bg-primary-600 text-white shadow"
+								: "text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-white"
+						}`}
+					>
+						{f.label}
+					</button>
+				))}
+			</div>
+
+			{/* Image viewer */}
+			<div className="relative w-full max-w-4xl">
+				{/* Render all images stacked; only the active one is visible — eliminates flicker from mount/unmount */}
+				<div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-surface-200 dark:border-surface-700">
+					{Array.from({ length: total }).map((_, i) => (
+						<motion.img
+							key={`${flow.folder}-${i}`}
+							src={`/screenshots/${flow.folder}/${i + 1}.png`}
+							alt={`${flow.label} step ${i + 1}`}
+							animate={{ opacity: i === activeIndex ? 1 : 0 }}
+							transition={{ duration: 0.3, ease: "easeInOut" }}
+							className={`w-full object-cover rounded-2xl ${i === 0 ? "relative" : "absolute inset-0"}`}
+							style={{ pointerEvents: i === activeIndex ? "auto" : "none" }}
+						/>
+					))}
+				</div>
+
+				{/* Prev / Next buttons */}
+				<button
+					onClick={prev}
+					className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 dark:bg-surface-800/80 backdrop-blur shadow hover:bg-white dark:hover:bg-surface-700 transition"
+				>
+					<ChevronLeft size={18} />
+				</button>
+				<button
+					onClick={next}
+					className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 dark:bg-surface-800/80 backdrop-blur shadow hover:bg-white dark:hover:bg-surface-700 transition"
+				>
+					<ChevronRight size={18} />
+				</button>
+			</div>
+
+			{/* Dot indicators */}
+			<div className="flex gap-2">
+				{Array.from({ length: total }).map((_, i) => (
+					<button
+						key={i}
+						onClick={() => setActiveIndex(i)}
+						className={`w-2 h-2 rounded-full transition-all ${
+							i === activeIndex ? "bg-primary-600 w-5" : "bg-surface-300 dark:bg-surface-600"
+						}`}
+					/>
+				))}
+			</div>
+
+			<p className="text-sm text-surface-500 dark:text-surface-400">
+				{activeIndex + 1} / {total}
+			</p>
+		</div>
+	);
+};
 
 const LandingPage = () => {
 	return (
@@ -122,6 +222,59 @@ const LandingPage = () => {
 							</motion.div>
 						))}
 					</div>
+				</div>
+			</section>
+
+			{/* Screenshots Section */}
+			<section className="py-20 px-4 bg-surface-50 dark:bg-surface-900">
+				<div className="max-w-5xl mx-auto">
+					<div className="text-center mb-12">
+						<h2 className="text-3xl font-bold text-surface-900 dark:text-white">See it in action</h2>
+						<p className="mt-4 text-surface-600 dark:text-surface-400 max-w-xl mx-auto">
+							Step-by-step screenshots of the real authentication flows.
+						</p>
+					</div>
+					<ScreenshotGallery />
+				</div>
+			</section>
+
+			{/* Gumroad / Purchase Section */}
+			<section className="py-20 px-4 bg-gradient-to-br from-primary-600 to-primary-500 dark:from-primary-700 dark:to-primary-600">
+				<div className="max-w-3xl mx-auto text-center">
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.5 }}
+					>
+						<div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-white/20 text-white text-sm font-medium">
+							<ShoppingCart size={14} />
+							Full Source Code
+						</div>
+						<h2 className="text-3xl sm:text-4xl font-extrabold text-white">Get AuthKit Pro</h2>
+						<p className="mt-4 text-primary-100 text-lg max-w-xl mx-auto">
+							Download the complete, production-ready source code. One-time purchase. Lifetime updates.
+						</p>
+						<ul className="mt-6 flex flex-wrap justify-center gap-3 text-sm text-white/90">
+							{["Full Source Code", "Email + Google OAuth", "2FA Support", "MongoDB & PostgreSQL", "Docker Ready", "Free Updates"].map((item) => (
+								<li key={item} className="flex items-center gap-1.5 bg-white/15 rounded-full px-3 py-1">
+									<Shield size={12} />
+									{item}
+								</li>
+							))}
+						</ul>
+						<div className="mt-10">
+							<a
+								href="https://gumroad.com"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-flex items-center gap-2 bg-white text-primary-700 font-semibold text-base py-3 px-10 rounded-full shadow-lg hover:shadow-xl hover:bg-primary-50 transition-all"
+							>
+								<ShoppingCart size={18} />
+								Buy on Gumroad
+							</a>
+						</div>
+					</motion.div>
 				</div>
 			</section>
 
