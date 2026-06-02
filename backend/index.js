@@ -12,6 +12,7 @@ import passport from "./config/passport.js";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import adminRoutes from "./routes/admin.route.js";
+import { startKeepAlive } from "./utils/keepAlive.js";
 
 dotenv.config();
 
@@ -86,4 +87,5 @@ if (process.env.NODE_ENV === "production") {
 app.listen(PORT, () => {
 	connectDB();
 	console.log(`🚀 AuthKit Pro server running on port ${PORT}`);
+	startKeepAlive(process.env.RENDER_EXTERNAL_URL);
 });
